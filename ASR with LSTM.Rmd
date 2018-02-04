@@ -1,0 +1,126 @@
+---
+title: "Systematic Review with LSTM"
+author: "Rens vd Schoot, Daniel Oberski, Jonathan de Bruin and Kees van Eijden"
+date: "4/2/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Learning model is a copy of [LSTM on the IMDB sentiment classification task] (https://keras.rstudio.com/articles/examples/imdb_lstm.html). Objective at the moment is: just get it running.   
+
+
+
+```{r initialize}
+library(keras)
+library(rjson)
+```
+## Data
+Data consist of selected articles from Scopus. There are 3 sets: (01) a set of articles after an initial search, (02) a sublist of articles after title screening and (03) a subset (of 02) of finally included articles. The .ris output files are json-ized by an external program. The .json files are expected to reside in the working directory.
+```{r reading data}
+r3 <- fromJSON(file = "./03. finally included.json")
+r2 <- fromJSON(file = "./02. included after title screening.json")
+r1 <- fromJSON(file = "./01. Initial Search.json")
+```
+
+
+### Input data and pre-processing
+
+```{r input}
+cat('Loading data...\n')
+imdb <- dataset_imdb(num_words = max_features)
+x_train <- imdb$train$x
+y_train <- imdb$train$y
+x_test <- imdb$test$x
+y_test <- imdb$test$y
+
+cat(length(x_train), 'train sequences\n')
+cat(length(x_test), 'test sequences\n')
+```
+The sizes of the sets are
+```{r display}
+cat(length(x_train), 'train sequences\n')
+cat(length(x_test), 'test sequences\n')
+```
+
+```{r preprocessing}
+cat('Pad sequences (samples x time)\n')
+x_train <- pad_sequences(x_train, maxlen = maxlen)
+x_test <- pad_sequences(x_test, maxlen = maxlen)
+cat('x_train shape:', dim(x_train), '\n')
+cat('x_test shape:', dim(x_test), '\n')
+```
+
+### Reshape and Rescale
+
+## Model
+
+Define model
+- linear stack of layers
+- GPU replication
+```{r define}
+cat('Build model...\n')
+model <- keras_model_sequential()
+model %>%
+  layer_embedding(input_dim = max_features, output_dim = 128) %>% 
+  layer_lstm(units = 64, dropout = 0.2, recurrent_dropout = 0.2) %>% 
+  layer_dense(units = 1, activation = 'sigmoid')
+```
+
+Compile model
+- Optimiser
+- Loss
+- Metrics
+Try using different optimizers and different optimizer configs
+```{r compile}
+model %>% compile(
+  loss = 'binary_crossentropy',
+  optimizer = 'adam',
+  metrics = c('accuracy')
+)
+```
+
+Fit a model
+- Batch size
+- Epochs
+- Validation split
+```{r fit}
+cat('Train...\n')
+batch_size <- 32
+model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = 15,
+  validation_split = 0.2
+#validation_data = list(x_test, y_test)
+)
+```
+
+Evaluate model
+- evaluate
+- plot
+```{r evaluate}
+scores <- model %>% evaluate(
+  x_test, y_test,
+  batch_size = batch_size
+)
+
+cat('Test score:', scores[[1]])
+cat('Test accuracy', scores[[2]])
+```
+
+Predict with model
+- classes
+- probability
+```{r predict}
+```
+
+## Results
+- Plots and tables
+- Considerations / warnings
+- Follow up
+
+## References, copy rights, etc.

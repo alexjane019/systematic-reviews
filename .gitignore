@@ -33,3 +33,4 @@ vignettes/*.pdf
 *.knit.md
 *.un~
 *.md~
+.Rproj.user

@@ -26,21 +26,23 @@ if __name__ == '__main__':
 
     # filepath = os.path.join('example_dataset_1', 'demo.txt')
     input_fp = args.input_file
-    if not os.path.isabs(input_fp):
-        input_fp = os.path.join(os.path.dirname(__file__), input_fp)
     print("Input file:", input_fp)
 
-    # parse the articles
+    # parse articles
     articles = parse_articles(input_fp)
     print("Number of articles:", len(articles))
 
-    # export the articles
+    # make export dir
     output_pf = args.export_file
+    if not os.path.exists(os.path.dirname(output_pf)):
+        os.makedirs(os.path.dirname(output_pf))
+
+    # export articles
     print("Export file:", output_pf)
     articles = pd.DataFrame(articles)
 
     if output_pf.endswith('.csv'):
-        articles.to_csv(output_pf.replace('.txt', '.csv'))
+        articles.to_csv(output_pf.replace('.txt', '.csv'), index=False)
     elif output_pf.endswith('.json'):
         articles.to_json(output_pf.replace('.txt', '.json'))
     else:
